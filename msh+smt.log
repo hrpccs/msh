@@ -1,0 +1,43 @@
+root@hongrp-ubuntu:/home/hongrp/workspace/msh# bash run_msh_optimized.sh 
+ptrchase 13107200 10
+allocating 838860800 bytes
+[MSH] 
+
+ MSH Init
+[MSH]     offset to ycs: 0
+[MSH]     offset to regs: 35608
+[MSH]     offset to idx_list: 407128
+[MSH]     offset to regset: 35608
+[MSH]     size of x86_registers: 192
+[MSH]     size of regset: 2880
+[MSH]     size of yield context: 20
+[MSH]        offset of sp: 0
+[MSH]        offset of ip: 8
+[MSH]        offset of next: 18
+[MSH] Warning: this number must match the value in binary instrumentation
+[MSH] Scavenger pool has 1 entries
+[MSH] MSH is successfully initiated
+[MSH] This scavenger doesn't have loop counter
+[MSH] Primary thread 0 has 1 scavengers
+msh_alloc_time= 0 ms
+[0] ptrchase finishes
+[0] AMAT: 93 ns
+[MSH] Cleanup thread 0
+[MSH] [0]              Coroutine at pos 0 is finished -- Scavenger index = -1
+[MSH] [0] Coroutine 1 is scheduled 0x7f9fe110f5b8 0x7f9fe0a0026a
+compute starts -- crt_pos = 20
+compute finishes 20
+per task time: 20 ns
+[MSH] [0]              Coroutine at pos 1 is finished -- Scavenger index = 0
+[MSH] FinishedCoroutines: 1 
+[0]             ***Primary thread [0] is finished***
+root@hongrp-ubuntu:/home/hongrp/workspace/msh# ./apps/build/ptrchase.bolt 13107200
+ptrchase 13107200 10
+allocating 838860800 bytes
+[0] ptrchase finishes
+[0] AMAT: 92 ns
+root@hongrp-ubuntu:/home/hongrp/workspace/msh# ./apps/build/ptrchase 13107200
+ptrchase 13107200 10
+allocating 838860800 bytes
+[0] ptrchase finishes
+[0] AMAT: 93 ns

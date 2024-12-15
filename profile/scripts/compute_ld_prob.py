@@ -103,11 +103,14 @@ def aggregate_sub_dicts(sub_dicts: list) -> None:
             else:
                 cf_dict[key] = value
 
+    # why not primary instrument need lat_prob.
     if is_scav_profile == 0:
         return
 
+    print("aggregating latency dict")
     for sub_lat_dict in sub_lat_dicts:
         for key, value in sub_lat_dict.items():
+            print(key, value)
             if key in lat_dict:
                 lat_dict[key] = (lat_dict[key][0] + value[0], lat_dict[key][1] + value[1])
             else:
@@ -147,11 +150,13 @@ def sub_process_lbr(lines):
 
         create_control_flow_tuples(sub_cf_dict, sub_lat_dict, branch_src_to_dst_list[:LBR_SUBSAMPLE_SIZE])
         if is_scav_profile == 1:
+            # create predecessor profile
             create_predecessor_profile(sub_pred_dict, branch_src_to_dst_list[:LBR_SUBSAMPLE_SIZE])
     return sub_cf_dict, sub_lat_dict, sub_pred_dict
 
 
 def process_lbr(trace_filename: str) -> None:
+    print("processing lbr file: {}".format(trace_filename))
     f = open(trace_filename, "r")
     lines = f.readlines()
 

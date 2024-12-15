@@ -30,21 +30,22 @@ mkdir -p ${TMP_DIR}
 
 echo "  1) perf record L2/L3 misses"
 # TODO: determine sampling freq, type of events
-#perf record -e cpu/event=0xd1,umask=0x20,name=MEM_LOAD_RETIRED.L3_MISS/ppp -- $benchmark_path/$benchmark_name 1 1 $input_graphs_path/$g
-EVENT1=cpu/event=0xd1,umask=0x10,name=MEM_LOAD_RETIRED.L2_MISS/ppp
-EVENT2=cpu/event=0xd1,umask=0x20,name=MEM_LOAD_RETIRED.L3_MISS/ppp
+#perf record -e cpu/event=0xd1,umask=0x20,name=mem_load_retired.l3_miss/ppp -- $benchmark_path/$benchmark_name 1 1 $input_graphs_path/$g
+EVENT1=mem_load_retired.l2_miss
+EVENT2=mem_load_retired.l3_miss
 EVENT3=BR_INST_RETIRED.ALL_BRANCHES
 sudo perf record -e ${EVENT1},${EVENT2},${EVENT3}\
         -b \
         -c${SAMPLING_RATE_IN_CNTS} \
-        -o ${RES_DIR}/perf.data -- sudo sh -c ". ${MAIN_DIR}/config/set_env.sh; chrt -r 99 time -p ${TARGET_ABS_PATH} ${ARGS}"
+        -o ${RES_DIR}/perf.data -- sudo sh -c ". ${MAIN_DIR}/config.sh; chrt -r 99 time -p ${TARGET_ABS_PATH} ${ARGS}"
 
 sudo chown ${USER} ${RES_DIR}/perf.data
 
-#perf record -e cpu/event=0xd1,umask=0x10,name=MEM_LOAD_RETIRED.L2_MISS/ppp,cpu/event=0xd1,umask=0x20,name=MEM_LOAD_RETIRED.L3_MISS/ppp,cycles:u -b -F1000 -o ${RES_DIR}/perf.data -- ${BUILD_DIR}/${SCHED_NAME} ${CRLIST}
-#perf record -e cpu/event=0xd1,umask=0x20,name=MEM_LOAD_RETIRED.L3_MISS/ppp -F1000 -o ${RES_DIR}/perf.data -- ${BUILD_DIR}/${SCHED_NAME} ${CRLIST}
+#perf record -e cpu/event=0xd1,umask=0x10,name=mem_load_retired.l2_miss/ppp,cpu/event=0xd1,umask=0x20,name=mem_load_retired.l3_miss/ppp,cycles:u -b -F1000 -o ${RES_DIR}/perf.data -- ${BUILD_DIR}/${SCHED_NAME} ${CRLIST}
+#perf record -e cpu/event=0xd1,umask=0x20,name=mem_load_retired.l3_miss/ppp -F1000 -o ${RES_DIR}/perf.data -- ${BUILD_DIR}/${SCHED_NAME} ${CRLIST}
 
 echo "  2) perf report"
+# perf report -i ${RES_DIR}/perf.data --sort comm,dso,symbol -t"\$" > ${TMP_DIR}/perf_report_all.txt
 perf report -i ${RES_DIR}/perf.data --sort comm,dso,symbol -t"\$" |
     sed '/BR_INST_RETIRED.ALL_BRANCHES/q' | grep "%" > ${TMP_DIR}/perf_report.txt
 
@@ -62,12 +63,12 @@ for FUNC in $(cat ${TMP_DIR}/fn_list.txt | awk -F'[\t]' '{print $1}'); do
   FUNC_NO_SPACE=$(echo $FUNC | sed 's/ /_/g')
 
   perf annotate -i ${RES_DIR}/perf.data --stdio -M intel "${FUNC}" |
-    sed -n '/MEM_LOAD_RETIRED.L2_MISS/,/\(MEM_LOAD_RETIRED.L3_MISS\|BR_INST_RETIRED\)/{p;/\(MEM_LOAD_RETIRED.L3_MISS\|BR_INST_RETIRED\)/q}' |
+    sed -n '/mem_load_retired.l2_miss/,/\(mem_load_retired.l3_miss\|BR_INST_RETIRED\)/{p;/\(mem_load_retired.l3_miss\|BR_INST_RETIRED\)/q}' |
     sed '1d' | sed '$d' > ${TMP_DIR}/fn_${FUNC_NO_SPACE}_l2_annotate.txt
 
   echo "    L3 misses "
   perf annotate -i ${RES_DIR}/perf.data --stdio -M intel "${FUNC}" |
-    sed -n '/MEM_LOAD_RETIRED.L3_MISS/,/BR_INST_RETIRED/{p;/BR_INST_RETIRED/q}' |
+    sed -n '/mem_load_retired.l3_miss/,/BR_INST_RETIRED/{p;/BR_INST_RETIRED/q}' |
     sed '1d' | sed '$d' > ${TMP_DIR}/fn_${FUNC_NO_SPACE}_l3_annotate.txt
 
 

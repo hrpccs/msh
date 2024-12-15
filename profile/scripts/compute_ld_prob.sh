@@ -28,10 +28,10 @@ perf script -i ${PERF_ABS_PATH} -F event,brstack | grep BRANCH | \
     awk -F':' '{print $2}' > ${TMP_DIR}/lbr.samples
 
 # L2, L3 summary
-perf script -i ${PERF_ABS_PATH} -F event,ip | grep "MEM_LOAD_RETIRED.L2_MISS" | \
+perf script -i ${PERF_ABS_PATH} -F event,ip | grep "mem_load_retired.l2_miss" | \
     awk '{cnt[$2]+=1} END {for (ip in cnt) print ip, cnt[ip]}' > ${TMP_DIR}/l2.summary
 
-perf script -i ${PERF_ABS_PATH} -F event,ip | grep "MEM_LOAD_RETIRED.L3_MISS" | \
+perf script -i ${PERF_ABS_PATH} -F event,ip | grep "mem_load_retired.l3_miss" | \
     awk '{cnt[$2]+=1} END {for (ip in cnt) print ip, cnt[ip]}' > ${TMP_DIR}/l3.summary
 
 # finally, compute prob
@@ -44,9 +44,9 @@ python3 compute_ld_prob.py ${TMP_DIR}/lbr.samples \
     $IS_SCAV > ${RES_DIR}/ld_prob.txt
 
 cat ${RES_DIR}/ld_prob.txt | grep "LOAD_PROB" | awk -F'[% ]' '{print $2, $3, $7, $9}' > ${RES_DIR}/cmpc_list.txt
-if [ $IS_SCAV -eq 1 ]; then
-    cat ${RES_DIR}/ld_prob.txt | grep "LAT_PROF" > ${RES_DIR}/lat_prof.txt
-    cat ${RES_DIR}/ld_prob.txt | grep "PRED_PROF" > ${RES_DIR}/pred_prof.txt
-fi
+# if [ $IS_SCAV -eq 1 ]; then
+cat ${RES_DIR}/ld_prob.txt | grep "LAT_PROF" > ${RES_DIR}/lat_prof.txt
+cat ${RES_DIR}/ld_prob.txt | grep "PRED_PROF" > ${RES_DIR}/pred_prof.txt
+# fi
 
 #rm -r ${TMP_DIR} 2> /dev/null

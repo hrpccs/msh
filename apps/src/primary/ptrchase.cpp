@@ -133,6 +133,10 @@ init_run(uint64_t arr_len) {
     int *cycle = (int *) malloc(sizeof(int) * arr_len);
 
     if (data_arr == NULL) {
+        uint64_t size_in_bytes =  (uint64_t) arr_len * CORE_NUM *
+                                  JOBS_PER_CORE * sizeof(struct node);
+        // print
+        fprintf(stderr, "allocating %lu bytes\n", size_in_bytes);
         data_arr = (struct node *) mmap(
             NULL, sizeof(struct node) * arr_len * CORE_NUM * JOBS_PER_CORE,
             PROT_READ | PROT_WRITE,

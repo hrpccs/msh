@@ -4949,7 +4949,7 @@ index 5280fc293c87..2c937527d42f 100644
          BC.MIB->getDefaultLiveOut(State);
          BC.MIB->getCalleeSavedRegs(State);
        } else {
-@@ -129,11 +129,11 @@ protected:
+@@ -129,11 +129,12 @@ protected:
  
        BitVector Used = BitVector(NumRegs, false);
        if (IsCall) {
@@ -6117,7 +6117,7 @@ index 89ba3627cdd7..87c6068db10f 100644
      if (!BC.SymbolicDisAsm->getInstruction(Instruction, Size,
                                             FunctionData.slice(Offset),
                                             AbsoluteInstrAddr, nulls())) {
-@@ -1363,6 +1373,64 @@ add_instruction:
+@@ -1363,6 +1373,66 @@ add_instruction:
        MIB->addAnnotation(Instruction, "Size", static_cast<uint32_t>(Size));
      }
  
@@ -6190,7 +6190,7 @@ index 89ba3627cdd7..87c6068db10f 100644
      return false;
    }
  
-@@ -2174,6 +2245,12 @@ bool BinaryFunction::buildCFG(MCPlusBuilder::AllocatorIdTy AllocatorId) {
+@@ -2174,6 +2245,14 @@ bool BinaryFunction::buildCFG(MCPlusBuilder::AllocatorIdTy AllocatorId) {
  
    normalizeCFIState();
  
@@ -8641,6 +8641,25 @@ index eab16cb09032..b79d939adbf2 100644
 +
  } // namespace bolt
  } // namespace llvm
+diff --git a/bolt/lib/Passes/ThreeWayBranch.cpp b/bolt/lib/Passes/ThreeWayBranch.cpp
+index dc320d53fb68..cf30464b9637 100644
+--- a/bolt/lib/Passes/ThreeWayBranch.cpp
++++ b/bolt/lib/Passes/ThreeWayBranch.cpp
+@@ -26,6 +26,8 @@ bool ThreeWayBranch::shouldRunOnFunction(BinaryFunction &Function) {
+   return true;
+ }
+ 
+ void ThreeWayBranch::runOnFunction(BinaryFunction &Function) {
+   BinaryContext &BC = Function.getBinaryContext();
+   MCContext *Ctx = BC.Ctx.get();
+@@ -34,6 +36,10 @@ void ThreeWayBranch::runOnFunction(BinaryFunction &Function) {
+   BinaryFunction::BasicBlockOrderType BlockLayout(
+       Function.getLayout().block_begin(), Function.getLayout().block_end());
+   for (BinaryBasicBlock *BB : BlockLayout) {
++
+     // The block must be hot
+     if (BB->getExecutionCount() == 0 ||
+         BB->getExecutionCount() == BinaryBasicBlock::COUNT_NO_PROFILE)
 diff --git a/bolt/lib/Passes/YDPass.cpp b/bolt/lib/Passes/YDPass.cpp
 new file mode 100644
 index 000000000000..d2ebc809e0e2
@@ -8817,7 +8836,14 @@ index 1c0c68c4cdfe..2cb651774f3e 100644
  /// Return true if the function \p BF should be disassembled.
  static bool shouldDisassemble(const BinaryFunction &BF) {
    if (BF.isPseudo())
-@@ -3122,6 +3134,8 @@ void RewriteInstance::processProfileData() {
+@@ -749,6 +760,7 @@ Error RewriteInstance::run() {
+     return Error::success();
+   }
+ 
+   selectFunctionsToProcess();
+ 
+   readDebugInfo();
+@@ -3122,6 +3134,9 @@ void RewriteInstance::processProfileData() {
  void RewriteInstance::disassembleFunctions() {
    NamedRegionTimer T("disassembleFunctions", "disassemble functions",
                       TimerGroupName, TimerGroupDesc, opts::TimeRewrite);
